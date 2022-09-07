@@ -97,6 +97,7 @@ library
                      , lens
                      , ansi-terminal
                      , QuickCheck
+                     , directory
 
  ghc-options:         -Wall -fobject-code -fno-ignore-interface-pragmas -fno-omit-interface-pragmas -fno-strictness -fno-spec-constr -fno-specialise
 

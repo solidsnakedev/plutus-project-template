@@ -9,19 +9,30 @@ import Cardano.Api as CardanoAPI
 import           PlutusTx              
 import           Codec.Serialise       (serialise)
 import           Data.Aeson            (encode)
+import System.Directory (doesDirectoryExist, createDirectoryIfMissing)
+import Ledger.Tx.CardanoAPI (toCardanoScriptData)
 
-dataToScriptData :: Data -> ScriptData
-dataToScriptData (Constr n xs) = ScriptDataConstructor n $ dataToScriptData <$> xs
-dataToScriptData (Map xs)      = ScriptDataMap [(dataToScriptData x, dataToScriptData y) | (x, y) <- xs]
-dataToScriptData (List xs)     = ScriptDataList $ dataToScriptData <$> xs
-dataToScriptData (I n)         = ScriptDataNumber n
-dataToScriptData (B bs)        = ScriptDataBytes bs
+--dataToScriptData :: Data -> ScriptData
+--dataToScriptData (Constr n xs) = ScriptDataConstructor n $ dataToScriptData <$> xs
+--dataToScriptData (Map xs)      = ScriptDataMap [(dataToScriptData x, dataToScriptData y) | (x, y) <- xs]
+--dataToScriptData (List xs)     = ScriptDataList $ dataToScriptData <$> xs
+--dataToScriptData (I n)         = ScriptDataNumber n
+--dataToScriptData (B bs)        = ScriptDataBytes bs
 
 writeJSON :: PlutusTx.ToData a => FilePath -> a -> IO ()
-writeJSON file = LBS.writeFile file . encode . scriptDataToJson ScriptDataJsonDetailedSchema . dataToScriptData . PlutusTx.toData
+--writeJSON file = LBS.writeFile file . encode . scriptDataToJson ScriptDataJsonDetailedSchema . dataToScriptData . PlutusTx.toData
+writeJSON file = LBS.writeFile file .
+                 encode . 
+                 scriptDataToJson ScriptDataJsonDetailedSchema .
+                 toCardanoScriptData .
+                 PlutusTx.toBuiltinData
 
 writeUnit :: IO ()
-writeUnit = writeJSON "output/unit.json" ()
+writeUnit = do
+    exist <- doesDirectoryExist "output"
+    createDirectoryIfMissing exist "output"
+    writeJSON "output/unit.json" ()
+    putStrLn "unit value saved in -> output/unit.json"
 
 writeValidator :: FilePath -> LedgerScripts.Validator -> IO (Either (FileError ()) ())
 writeValidator file validator = CardanoAPI.writeFileTextEnvelope file Nothing scriptSerialised
