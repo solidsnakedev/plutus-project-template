@@ -2,12 +2,17 @@
 
 module TokenOnChain
     ( tokenPolicy
+    , mkTokenPolicy
+    , tokenPolicyScript
+    , tokenPolicyValidator
+    , tokenCurSymbol
     ) where
 
 import qualified PlutusTx
 import           PlutusTx.Prelude            hiding (Semigroup(..), unless)
 import           Ledger                      hiding (mint, singleton)
 import qualified Plutus.V1.Ledger.Scripts        as PlutusScripts
+import qualified Plutus.Script.Utils.V1.Scripts as UtilsScripts
 import qualified Plutus.Script.Utils.V1.Typed.Scripts as UtilsScripts
 import           Ledger.Value                as Value
 
@@ -27,8 +32,13 @@ mkTokenPolicy oref tn amt () ctx = traceIfFalse "UTxO not consumed"   hasUTxO   
         [(_, tn', amt')] -> tn' == tn && amt' == amt
         _                -> False
 
+--------------------------
+-- Helper Functions
+--------------------------
+
 tokenPolicy :: TxOutRef -> TokenName -> Integer -> UtilsScripts.MintingPolicy
 tokenPolicy oref tn amt = PlutusScripts.mkMintingPolicyScript $
+    --Converts a custom redeemer from a minting policy function to an untyped minting policy function
     $$(PlutusTx.compile [|| \oref' tn' amt' -> UtilsScripts.mkUntypedMintingPolicy $ mkTokenPolicy oref' tn' amt' ||])
     `PlutusTx.applyCode`
     PlutusTx.liftCode oref
@@ -37,5 +47,15 @@ tokenPolicy oref tn amt = PlutusScripts.mkMintingPolicyScript $
     `PlutusTx.applyCode`
     PlutusTx.liftCode amt
 
---tokenCurSymbol :: TxOutRef -> TokenName -> Integer -> CurrencySymbol
---tokenCurSymbol oref tn = scriptCurrencySymbol . tokenPolicy oref tn
+tokenPolicyScript :: UtilsScripts.MintingPolicy -> PlutusScripts.Script
+tokenPolicyScript = PlutusScripts.unMintingPolicyScript
+
+tokenPolicyValidator :: PlutusScripts.Script -> PlutusScripts.Validator
+tokenPolicyValidator = PlutusScripts.Validator
+
+tokenCurSymbol :: UtilsScripts.MintingPolicy -> CurrencySymbol
+tokenCurSymbol = UtilsScripts.scriptCurrencySymbol
+
+-- λ> mintingPolicyHash $ tokenPolicy (TxOutRef {txOutRefId = "5cf29590d49121179118302e8dcf43169241aaac3059333ab1f9b51c2ac1dc02", txOutRefIdx = 3}) "test" 4
+-- λ> mp = tokenPolicy (TxOutRef {txOutRefId = "5cf29590d49121179118302e8dcf43169241aaac3059333ab1f9b51c2ac1dc02", txOutRefIdx = 3}) "test" 4
+-- λ> tpValidator = tokenPolicyValidator $ tokenPolicyScript mp
