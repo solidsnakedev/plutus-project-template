@@ -42,11 +42,8 @@ library
   import:          lang
   hs-source-dirs:      src
 
-  exposed-modules:  Compile
+  exposed-modules:  Utils
                   , Gift
-                  , TokenOnChain
-                --      , ContractError
-                 --    , Deploy
   --------------------------
   -- PLutus Default dependencies
   --------------------------

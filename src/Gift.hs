@@ -31,6 +31,10 @@ import qualified Control.Monad.Freer.Extras as Extras
 import Data.Default
 import qualified Data.Aeson as DataAeson
 
+import Wallet.Emulator.MultiAgent
+import System.IO (stdout)
+
+
 
 {-# OPTIONS_GHC -fno-warn-unused-imports #-}
 --------------------------
@@ -40,7 +44,7 @@ import qualified Data.Aeson as DataAeson
 {-# INLINABLE mkValidator #-}
 mkValidator :: BuiltinData -> BuiltinData -> BuiltinData -> ()
 --mkValidator _ _ _ = ()
-mkValidator _ _ _ = trace "Hello from on chain code"()
+mkValidator _ _ _ = trace "Hello world testing" ()
 
 --------------------------
 -- Helper Functions
@@ -53,7 +57,7 @@ valHash :: UtilsScripts.ValidatorHash
 valHash = UtilsScripts.validatorHash validator
 
 scrAddress :: Ledger.Address
-scrAddress = Ledger.scriptAddress validator
+scrAddress = Ledger.scriptHashAddress valHash
 
 --------------------------
 -- Off Chain Code - PAB
@@ -77,7 +81,7 @@ grab = do
     let orefs   = PlutusTxPrelude.fst <$> Map.toList utxos
         chainIndex = PlutusTxPrelude.snd <$> Map.toList utxos
         lookups = Constraints.unspentOutputs utxos      <>
-                  Constraints.otherScript validator
+                  Constraints.plutusV1OtherScript validator
         tx :: Constraints.TxConstraints Void Void
         tx      = PlutusTxPrelude.mconcat [Constraints.mustSpendScriptOutput oref $ LedgerApi.Redeemer $ Builtins.mkI 17 | oref <- orefs]
 
@@ -109,13 +113,34 @@ mkKnownCurrencies []
 -- Emulator Trace
 --------------------------
 
-runEmulator = runEmulatorTraceIO' def def myTrace
-
 myTrace = do
     handle1 <- PlutusTrace.activateContractWallet (WalletEmulator.knownWallet 1) endpoints
     handle2 <- PlutusTrace.activateContractWallet (WalletEmulator.knownWallet 2) endpoints
     callEndpoint @"give" handle1 10000000
     void $ PlutusTrace.waitUntilSlot 2
-    PlutusTrace.callEndpoint @"grab" handle1 ()
+    PlutusTrace.callEndpoint @"grab" handle2 ()
     s <- PlutusTrace.waitNSlots 2
     Extras.logDebug $ "reached -> " <> show s
+
+traceConfig = TraceConfig showEvent' stdout
+
+showEvent' :: WalletEmulator.EmulatorEvent' -> Maybe String
+showEvent' (WalletEvent w e) = return $ show e
+showEvent' _ = Nothing
+
+runEmulator = runEmulatorTraceIO' def def myTrace
+--runEmulator = runEmulatorTraceIO' traceConfig def myTrace
+--runEmulator = runEmulatorTraceIO myTrace
+
+-- Source code of Wallet.Emulator.MultiAgent
+--defaultShowEvent :: EmulatorEvent' -> Maybe String
+--defaultShowEvent = \case
+--  UserThreadEvent (UserLog msg)                                        -> Just $ "*** USER LOG: " <> msg
+--  InstanceEvent (ContractInstanceLog (ContractLog (A.String msg)) _ _) -> Just $ "*** CONTRACT LOG: " <> show msg
+--  InstanceEvent (ContractInstanceLog (StoppedWithError err)       _ _) -> Just $ "*** CONTRACT STOPPED WITH ERROR: " <> show err
+--  InstanceEvent (ContractInstanceLog NoRequestsHandled            _ _) -> Nothing
+--  InstanceEvent (ContractInstanceLog (HandledRequest _)           _ _) -> Nothing
+--  InstanceEvent (ContractInstanceLog (CurrentRequests _)          _ _) -> Nothing
+--  SchedulerEvent _                                                     -> Nothing
+--  WalletEvent _ _                                                      -> Nothing
+--  ev                                                                   -> Just . renderString . layoutPretty defaultLayoutOptions . pretty $ ev

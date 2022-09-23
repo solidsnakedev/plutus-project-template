@@ -1,18 +1,24 @@
-module Compile where
+module Utils where
 
-import Prelude
+import Prelude as P
 import qualified Plutus.V1.Ledger.Scripts as LedgerScripts
 import qualified Plutus.Script.Utils.V1.Scripts as UtilsScripts
 import qualified Data.ByteString.Lazy  as LBS
 import qualified Data.ByteString.Short  as SBS
 import Cardano.Api.Shelley (PlutusScript (..), PlutusScriptV1)
-import Cardano.Api as CardanoAPI
+import Cardano.Api as CardanoAPI hiding (TxId)
 import           PlutusTx              
 import           Codec.Serialise       (serialise)
 import           Data.Aeson            (encode)
 import System.Directory (doesDirectoryExist, createDirectoryIfMissing)
 import Ledger.Tx.CardanoAPI (toCardanoScriptData, toCardanoScriptHash)
 import Data.Text 
+import GHC.Word (Word32)
+import Ledger (TxOutRef(..), TxId(..))
+import Ledger.Bytes                        (getLedgerBytes)
+import Data.String                         (IsString (..))
+
+import PlutusTx.Sqrt
 
 --dataToScriptData :: Data -> ScriptData
 --dataToScriptData (Constr n xs) = ScriptDataConstructor n $ dataToScriptData <$> xs
@@ -51,6 +57,9 @@ writeValidator file validator = CardanoAPI.writeFileTextEnvelope file Nothing sc
 testnet_id :: CardanoAPI.NetworkId
 testnet_id = Testnet $ NetworkMagic (fromInteger 1)
 
+toTestnetId :: Word32 -> CardanoAPI.NetworkId
+toTestnetId n = CardanoAPI.fromNetworkMagic (NetworkMagic n)
+
 mkShelleyAddr :: CardanoAPI.PaymentCredential -> CardanoAPI.StakeAddressReference -> CardanoAPI.Address ShelleyAddr
 mkShelleyAddr paymentCredential stakeAddressReference = makeShelleyAddress testnet_id paymentCredential stakeAddressReference
 
@@ -67,3 +76,34 @@ toBech32Addr validator testnetId = serialiseToBech32 shelleyAddress
     where
         shelleyAddress = makeShelleyAddress testnetId paymentCredentialByScript CardanoAPI.NoStakeAddress
         paymentCredentialByScript = CardanoAPI.PaymentCredentialByScript $ toScriptHash validator
+
+toPlutusCore = LedgerScripts.unScript . LedgerScripts.unValidatorScript
+
+
+parseUTxO :: String -> TxOutRef
+parseUTxO s =
+  let
+    (x, y) = P.span (/= '#') s
+  in
+    TxOutRef (TxId $ getLedgerBytes $ fromString x) $ P.read $ P.tail y
+
+-- prettyPrintJSON $ sha2_256 "hello, world!"
+
+--PlutusTx.Prelude.map (indexByteString (sha2_256 "hello")) [0 .. 31]
+
+--Data.ByteString.unpack $ (fromBuiltin $ sha2_256 "hello")
+
+--sum $ PlutusTx.Prelude.map (indexByteString ("e1c0c4132b498ae79762c7df068834b7e2b4841e6ce934084a1ecf94dccbff97")) [0 .. 63]
+
+--sum $ PlutusTx.Prelude.map (indexByteString ("e2c0c4132b498ae79762c7df068834b7e2b4841e6ce934084a1ecf94dccbff96")) [0 .. 63]
+
+-- v = product $ PlutusTx.Prelude.map (indexByteString ("e1c0c4142b498ae79762c7df068834b7e2b4841e6ce934184a2ecf94dccbff97")) [0 .. 63]
+-- bigNum = 200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+
+fromApprox :: Sqrt -> Integer
+fromApprox (Approximately i ) = i
+fromApprox (Exactly i) = i
+fromApprox _ = 0
+
+isqrtInt :: Integer -> Integer
+isqrtInt i = fromApprox $ isqrt i
