@@ -2,12 +2,16 @@
 
 
 ## Prerequisites
+**Warning**
+Make sure you have nix installed
+https://nixos.org/download.html and nix.conf correctly setup
+https://github.com/input-output-hk/plutus-apps#nix-1
 
 1. Clone Plutus Apps
 ```
 git clone https://github.com/input-output-hk/plutus-apps
 ```
-2. Git checkout to tag you require eg:
+2. Git checkout to `tag` you require eg:
 ```
 git checkout v1.0.0-alpha1
 ```
