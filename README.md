@@ -20,7 +20,7 @@ cardano@4ba98a8eee51:~/plutus-apps$ nix-shell
 
 ## Run project tempalte
 
-1. go to plutus-project-template/<git-chekout-version>
+1. go to plutus-project-template/`git-chekout-version` like below
 ```
 cd plutus-project-template/v1.0.0-alpha1
 ```
