@@ -3,6 +3,7 @@
 
 ## Prerequisites
 **Warning**
+
 Make sure you have nix installed
 https://nixos.org/download.html and nix.conf correctly setup
 https://github.com/input-output-hk/plutus-apps#nix-1
