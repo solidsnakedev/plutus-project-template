@@ -1,5 +1,6 @@
 module Main where
 
-import Gift
+import OffChainGift
 
+main :: IO ()
 main = runEmulator

@@ -1,0 +1,108 @@
+Cabal-Version:      2.4
+Name:               project-template
+Version:            0.1.0.0
+Author:              "Jonathan Rodriguez"
+Maintainer:          ""
+Build-Type:          Simple
+Copyright:           ""
+License:             Apache-2.0
+License-files:       LICENSE
+
+--------------------------
+-- Default PLutus Language extensions
+--------------------------
+common lang
+  default-language:   Haskell2010
+  default-extensions:
+    DataKinds
+    DeriveAnyClass
+    DeriveGeneric
+    FlexibleContexts
+    NoImplicitPrelude
+    OverloadedStrings
+    ScopedTypeVariables
+    TemplateHaskell
+    TypeApplications
+    TypeFamilies
+    TypeOperators
+    MultiParamTypeClasses
+
+--------------------------
+-- Optional PLutus Language extensions
+--------------------------
+common lang-optional
+  other-extensions:
+    RecordWildCards
+    LambdaCase
+    GeneralizedNewtypeDeriving
+    DerivingStrategies
+    NumericUnderscores
+
+library
+  import:          lang
+  hs-source-dirs:      src
+
+  exposed-modules:  OnChainGift
+                  , OffChainGift
+  --------------------------
+  -- PLutus Default dependencies
+  --------------------------
+
+  build-depends:       plutus-contract
+                     , plutus-ledger
+                     , plutus-ledger-api
+                     , plutus-ledger-constraints
+                     , plutus-tx-plugin
+                     , plutus-tx
+
+  --------------------------
+  -- PLutus Optional dependencies
+  --------------------------
+                     , playground-common
+                     , plutus-pab
+                     , plutus-use-cases
+
+  --------------------------
+  -- PLutus new dependencies
+  --------------------------
+
+                     , plutus-script-utils
+
+  --------------------------
+  -- Other Cardano dependencies
+  --------------------------
+  build-depends:       cardano-api
+                     , cardano-crypto-class
+                     , cardano-ledger-core
+                     , cardano-ledger-shelley
+                     , cardano-wallet-core
+
+  ------------------------
+  -- Non-Cardano dependencies
+  ------------------------
+  build-depends:       aeson
+                     , base ^>=4.14.1.0
+                     , bytestring
+                     , containers
+                     , data-default
+                     , serialise
+                     , text
+                     , freer-extras
+                     , openapi3
+                     , prettyprinter
+                     , html-entities
+                     , lens
+                     , ansi-terminal
+                     , QuickCheck
+                     , directory
+
+ ghc-options:         -Wall -fobject-code -fno-ignore-interface-pragmas -fno-omit-interface-pragmas -fno-strictness -fno-spec-constr -fno-specialise
+
+executable project-template
+  hs-source-dirs:      app
+  main-is:             Main.hs
+  build-depends:       base ^>=4.14.1.0,
+                       project-template
+
+  default-language:    Haskell2010
+  ghc-options:         -Wall -O2

@@ -42,8 +42,8 @@ library
   import:          lang
   hs-source-dirs:      src
 
-  exposed-modules:  Utils
-                  , Gift
+  exposed-modules:  OnChainGift
+                  , OffChainGift
   --------------------------
   -- PLutus Default dependencies
   --------------------------
