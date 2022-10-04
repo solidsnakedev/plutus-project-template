@@ -25,17 +25,17 @@ cardano@4ba98a8eee51:~/plutus-apps$ nix-shell
 
 ## Run project tempalte
 
-1. go to plutus-project-template/`git-chekout-version` like below
+1. Go to plutus-project-template/`git-checkout-version` like below
 ```
-cd plutus-project-template/v1.0.0-alpha1
+[nix-shell:~]$ cd plutus-project-template/v1.0.0-alpha1
 ```
 2. run cabal update
 ```
-cabal update
+[nix-shell:~/plutus-project-template/v1.0.0-alpha1]$ cabal update
 ```
 3. run cabal repl
 ```
-cabal repl
+[nix-shell:~/plutus-project-template/v1.0.0-alpha1]$ cabal repl
 ```
 4. inside cabal repl import OffChainGift
 ```
