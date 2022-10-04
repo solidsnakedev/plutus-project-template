@@ -44,6 +44,10 @@ cabal repl
 5. execute runEmulator
 ```
 λ> runEmulator 
+```
+
+Expected outcome
+```
 Slot 00000: TxnValidate 161afa70667cfca2e083d7b65ba860cd3be1c9b2717bd9c80664d4907988e24f
 Slot 00000: SlotAdd Slot 1
 Slot 00001: W[7]: InsertionSuccess: New tip is Tip(Slot 1, BlockId 3148ce3fae5fefb24df5551dadae50943e20400a47286dda6e9c5a415eaf2d99, BlockNumber 0). UTxO state was added to the end.
